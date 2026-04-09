@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Debris Deputy Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <div class="container">
+
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <h2>Debris Deputy</h2>
+            <ul>
+                <li>Dashboard</li>
+                <li>Alerts</li>
+                <li>Settings</li>
+            </ul>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+
+            <!-- Header -->
+            <div class="header">
+                <h1>Garbage Alerts Dashboard</h1>
+            </div>
+            <!-- Stats -->
+            <div class="stats">
+                <div class="card">Total: <span id="totalCount">0</span></div>
+                <div class="card">Pending: <span id="pendingCount">0</span></div>
+                <div class="card">Confirmed: <span id="confirmedCount">0</span></div>
+                <div class="card">Rejected: <span id="rejectedCount">0</span></div>
+            </div>
+            <!-- Search Bar -->
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Search by location..." 
+                onkeyup="searchAlerts()"
+            />
+            <!-- Filters -->
+            <div class="filters">
+                <button onclick="filterAlerts('All')">All</button>
+                <button onclick="filterAlerts('Pending')">Pending</button>
+                <button onclick="filterAlerts('Confirmed')">Confirmed</button>
+                <button onclick="filterAlerts('Rejected')">Rejected</button>
+            </div>
+            <!-- Alerts Section -->
+            <div class="alerts" id="alertsContainer">
+                <!-- Alerts will be added here dynamically -->
+                <p>No alerts yet...</p>
+            </div>
+
+        </div>
+
+    </div>
+<script src="script.js"></script>
+</body>
+</html>
