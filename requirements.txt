@@ -4,3 +4,7 @@ ultralytics
 pymongo
 requests
 schedule
+pillow
+imagehash
+flask-cors
+

@@ -1,11 +1,10 @@
 import cv2
-import random
 
 def run_detection(frame):
     height, width, _ = frame.shape
 
-    # Simulate detection ONLY sometimes
-    detected = random.choice([True, False])
+    # 🔴 FORCE DETECTION FOR TESTING
+    detected = True
 
     if detected:
         x1, y1 = int(width*0.3), int(height*0.3)
