@@ -1,38 +1,45 @@
 from flask import Blueprint, jsonify, request
-from models.db import db
+from backend.models.db import db
 from datetime import datetime, timedelta
+from bson import ObjectId
 
 api = Blueprint("api", __name__)
 
-# ✅ Test API
-@api.route("/test", methods=["GET"])
-def test_api():
-    return jsonify({"message": "Backend is working!"})
+
+# ✅ GET ALL REPORTS (FOR FRONTEND)
+@api.route("/reports", methods=["GET"])
+def get_reports():
+    reports = list(db.reports.find())
+
+    formatted = []
+    for r in reports:
+        formatted.append({
+            "id": str(r["_id"]),
+            "image": r.get("image_path", ""),
+            "location": r.get("location", "Unknown"),
+            "status": r.get("status", "Pending").capitalize(),
+            "timestamp": r.get("timestamp", "")
+        })
+
+    return jsonify(formatted)
 
 
-# ✅ Feedback API (with DND logic)
-@api.route("/feedback", methods=["POST"])
-def feedback():
+# ✅ UPDATE STATUS (YES / NO)
+@api.route("/reports/<id>", methods=["PUT"])
+def update_report(id):
     data = request.json
+    status = data.get("status")
 
-    if not data:
-        return jsonify({"error": "No data received"}), 400
+    if status not in ["Confirmed", "Rejected"]:
+        return jsonify({"error": "Invalid status"}), 400
 
-    response = data.get("response")
-
-    if response not in ["yes", "no"]:
-        return jsonify({"error": "Invalid response"}), 400
-
-    feedback_data = {
-        "response": response,
-        "timestamp": datetime.utcnow()
-    }
-
-    # Save feedback
-    db.feedback.insert_one(feedback_data)
+    db.reports.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": {"status": status}}
+    )
 
     # 🔕 DND logic
-    if response == "no":
+    if status == "Rejected":
         dnd_time = datetime.utcnow() + timedelta(minutes=10)
 
         db.settings.update_one(
@@ -41,39 +48,18 @@ def feedback():
             upsert=True
         )
 
-    return jsonify({"message": "Feedback saved successfully!"})
+    return jsonify({"message": "Status updated"})
+from bson.objectid import ObjectId
 
+# UPDATE STATUS
+@api.route("/update-status/<id>", methods=["PUT"])
+def update_status(id):
+    data = request.json
+    status = data.get("status")
 
-# ✅ Check if alert should be shown
-@api.route("/should-alert", methods=["GET"])
-def should_alert():
-    settings = db.settings.find_one()
+    db.reports.update_one(
+        {"_id": ObjectId(id)},
+        {"$set": {"status": status}}
+    )
 
-    if not settings or "dnd_until" not in settings:
-        return jsonify({"alert": True})
-
-    if datetime.utcnow() < settings["dnd_until"]:
-        return jsonify({"alert": False})
-
-    return jsonify({"alert": True})
-
-
-# ✅ Check DND status
-@api.route("/check-dnd", methods=["GET"])
-def check_dnd():
-    settings = db.settings.find_one()
-
-    if not settings or "dnd_until" not in settings:
-        return jsonify({"dnd": False})
-
-    if datetime.utcnow() < settings["dnd_until"]:
-        return jsonify({"dnd": True})
-
-    return jsonify({"dnd": False})
-
-
-# ✅ Get all feedbacks
-@api.route("/feedbacks", methods=["GET"])
-def get_feedbacks():
-    feedbacks = list(db.feedback.find({}, {"_id": 0}))
-    return jsonify(feedbacks)
+    return jsonify({"message": "Status updated"})
